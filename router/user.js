@@ -1,11 +1,13 @@
 const express = require('express')
-const router = express.Router()
-const Result = require('../models/result')
-const { login } = require('../services/user')
-const { md5 } = require('../utils/crypto')
-const { PWD_SALT } = require('../utils/constant')
-const { body, validationResult } = require('express-validator')
 const boom = require('boom')
+const Result = require('../models/result')
+const { md5, decode } = require('../utils/crypto')
+const { PWD_SALT, PRIVATE_KEY, JWT_EXPIRED } = require('../utils/constant')
+const { body, validationResult } = require('express-validator')
+const jwt = require('jsonwebtoken')
+const { login,findUser } = require('../services/user')
+
+const router = express.Router()
 
 // curl https://www.liugezhou.online:80/login -X POST -d "username=liuyilan&password=123456"/
 
@@ -33,9 +35,32 @@ router.post('/login',
         if (!user || user.length == 0) {
           new Result('登录失败').fail(res)
         } else {
-          new Result('登录成功').success(res)
+          // JWT生成token
+          const token = jwt.sign(
+            { username },
+            PRIVATE_KEY,
+            { expiresIn: JWT_EXPIRED }
+          )
+          new Result({ token }, '登录成功').success(res)
         }
       })
+    }
+  })
+
+  /** 查询用户信息 */
+  router.get('/info', function(req, res) {
+    const decoded = decode(req)
+    if (decoded && decoded.username) {
+      findUser(decoded.username).then(user => {
+        if (user) {
+          user.roles = [user.role]
+          new Result(user, '获取用户信息成功').success(res)
+        } else {
+          new Result('获取用户信息失败').fail(res)
+        }
+      })
+    } else {
+      new Result('用户信息解析失败').fail(res)
     }
   })
 
