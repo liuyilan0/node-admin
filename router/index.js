@@ -9,10 +9,6 @@ router.get('/', function(req, res, next) {
     res.send('欢迎进入后台管理平台')
 })
 
-router.get('/login', function(req, res, next) {
-    res.json('登录')
-})
-
 router.use('/user', userRouter)
 
 /** 异常处理 */
