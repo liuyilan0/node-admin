@@ -1,10 +1,19 @@
 const crypto = require('crypto')
-const jwt = require('jsonwebtoken')
-const { PRIVATE_KEY } = require('./constant')
+const jwtToken = require('jsonwebtoken')
+const { PRIVATE_KEY, JWT_EXPIRED } = require('./constant')
 
 /** md5加密 */
 function md5(param) {
     return crypto.createHash('md5').update(String(param)).digest('hex')
+}
+
+/** jwt生成token */
+function jwtToToken(username) {
+  return jwtToken.sign(
+    { username },
+    PRIVATE_KEY,
+    { expiresIn: JWT_EXPIRED }
+  )
 }
 
 /** jwt反解token */
@@ -16,10 +25,11 @@ function decode(req) {
   } else {
     token = authorization
   }
-  return jwt.verify(token, PRIVATE_KEY)
+  return jwtToken.verify(token, PRIVATE_KEY)
 }
 
 module.exports = {
     md5,
+    jwtToToken,
     decode
 }

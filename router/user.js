@@ -1,19 +1,20 @@
 const express = require('express')
 const boom = require('boom')
 const Result = require('../models/result')
-const { md5, decode } = require('../utils/crypto')
-const { PWD_SALT, PRIVATE_KEY, JWT_EXPIRED } = require('../utils/constant')
+const { md5, jwtToToken, decode } = require('../utils/crypto')
+const { PWD_SALT } = require('../utils/constant')
 const { body, validationResult } = require('express-validator')
-const jwt = require('jsonwebtoken')
-const { login,findUser } = require('../services/user')
+const { db_login, db_findUser } = require('../services/user')
 
 const router = express.Router()
 
-// curl https://www.liugezhou.online:80/login -X POST -d "username=liuyilan&password=123456"/
-
 /**
- * 登录接口
+ * user类处理的接口:
+ * /user/login  - 登录接口
+ * /user/info   - 用户信息接口
  */
+
+/* 处理登录接口 */
 router.post('/login',
   [
     body('username').isString().withMessage('用户名必须为字符'),
@@ -31,27 +32,23 @@ router.post('/login',
       let { username, password } = req.body
       password = md5(`${password}${PWD_SALT}`)
 
-      login({ username, password }).then(user => {
+      db_login({ username, password }).then(user => {
         if (!user || user.length == 0) {
           new Result('登录失败').fail(res)
         } else {
-          // JWT生成token
-          const token = jwt.sign(
-            { username },
-            PRIVATE_KEY,
-            { expiresIn: JWT_EXPIRED }
-          )
+          // JWT生成token 并传给前端
+          const token = jwtToToken(username)
           new Result({ token }, '登录成功').success(res)
         }
       })
     }
   })
 
-  /** 查询用户信息 */
+  /* 处理查询用户信息接口 */
   router.get('/info', function(req, res) {
     const decoded = decode(req)
     if (decoded && decoded.username) {
-      findUser(decoded.username).then(user => {
+      db_findUser(decoded.username).then(user => {
         if (user) {
           user.roles = [user.role]
           new Result(user, '获取用户信息成功').success(res)
@@ -64,12 +61,5 @@ router.post('/login',
     }
   })
 
-router.get('/list', function (req, res, next) {
-  res.json('user list...')
-})
-
-router.get('/detail', function (req, res, next) {
-  res.json('user detail...')
-})
 
 module.exports = router

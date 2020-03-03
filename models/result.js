@@ -42,16 +42,19 @@ class Result {
     res.json(this.createResult())
   }
 
+  // 成功
   success(res) {
     this.code = CODE_SUCCESS
     this.json(res)
   }
 
+  // 失败
   fail(res) {
     this.code = CODE_ERROR
     this.json(res)
   }
 
+  // 过期
   expired(res) {
     this.code = CODE_TOKEN_EXPIRED
     this.json(res)
