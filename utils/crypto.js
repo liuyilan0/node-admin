@@ -18,13 +18,10 @@ function jwtToToken(username) {
 
 /** jwt反解token */
 function decode(req) {
-  const authorization = req.get('Authorization')
-  let token = ''
-  if (authorization.indexOf('Bearer') >= 0) {
-    token = authorization.replace('Bearer ', '')
-  } else {
-    token = authorization
-  }
+  let token = req.get('Authorization')
+  if (token.indexOf('Bearer') >= 0) {
+    token = token.replace('Bearer ', '')
+  } 
   return jwtToken.verify(token, PRIVATE_KEY)
 }
 

@@ -17,14 +17,14 @@ app.use(cors())
 app.use('/', router)
 
 // 配置https请求
-const privateKey = fs.readFileSync('https/www.liugezhou.online.key', 'utf8')
-const certificate = fs.readFileSync('https/www.liugezhou.online.pem', 'utf8')
+const privateKey = fs.readFileSync('https/el_liugezhou_online.key', 'utf8')
+const certificate = fs.readFileSync('https/el_liugezhou_online.pem', 'utf8')
 const credentials = { key: privateKey, cert: certificate }
 const httpsServer = https.createServer(credentials, app)
 
-const SSLPORT = 80
+const SSLPORT = 8888
 httpsServer.listen(SSLPORT, function() {
-  console.log('HTTPS Server is running on: https://www.liugezhou.online:%s', SSLPORT)
+  console.log('HTTPS Server is running on: https://el.liugezhou.online:%s', SSLPORT)
 })
 
 // 使 express 监听 5000 端口号发起的 http 请求

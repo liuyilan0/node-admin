@@ -1,4 +1,4 @@
-const { querySql, queryOne } = require('../db/db')
+const { querySql, queryOne } = require('../db')
 
 // 登录查询用户是否存在
 function db_login({ username, password }) {
