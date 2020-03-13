@@ -19,7 +19,6 @@ class Book {
     }
 
     createBookFromFile(file) {
-        // console.log('createBookFromFile', file)
         const {
             destination,
             filename,
@@ -236,6 +235,7 @@ class Book {
         }
     }
 
+    // 供给数据库插入使用，只保存数据库对应的字段
     toDb() {
         return {
             fileName: this.fileName,
@@ -263,6 +263,7 @@ class Book {
         return this.contents
     }
 
+    // 删除某目录下的文件：文件、封面、解压文件
     reset() {
         if (Book.pathExists(this.filePath)) {
             fs.unlinkSync(Book.genPath(this.filePath))
@@ -271,7 +272,7 @@ class Book {
             fs.unlinkSync(Book.genPath(this.coverPath))
         }
         if (Book.pathExists(this.unzipPath)) {
-            fs.rmdirSync(Book.genPath(this.unzipPath), { recursive: true })
+            fs.rmdirSync(Book.genPath(this.unzipPath), { recursive: true }) // recursive在低版本node下不支持
         }
     }
 
@@ -282,6 +283,7 @@ class Book {
         return `${UPLOAD_PATH}${path}`
     }
 
+    // 检查上传的电子书目录是否已经存在
     static pathExists(path) {
         if (path.startsWith(UPLOAD_PATH)) {
             return fs.existsSync(path)
@@ -290,6 +292,7 @@ class Book {
         }
     }
 
+    // 电子书封面路径
     static genCoverUrl(book) {
         const { cover } = book
         if (+book.updateType === 0) {

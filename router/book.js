@@ -4,12 +4,15 @@ const multer = require('multer')   // 文件上传
 const { UPLOAD_PATH } = require('../utils/constant')
 const Book = require('../models/book')
 const boom = require('boom')
+const { decode } = require('../utils/crypto')
+const bookService = require('../services/book')
 
 const router = express.Router()
 
 /**
  * book类处理的接口:
  * /book/upload  - 上传接口
+ * /book/create  - 添加接口
  */
 
 /* 上传接口 */
@@ -27,5 +30,48 @@ router.post('/upload', multer({ dest: `${UPLOAD_PATH}/book` }).single('file'),
             })
         }
     })
+
+/** 添加图书保存接口 */
+router.post('/create', function (req, res, next) {
+    const decoded = decode(req)
+    if (decoded && decoded.username) {
+        req.body.username = decoded.username
+    }
+    console.log('添加图书接口参数:\n')
+    console.log(req.body)
+    const book = new Book(null, req.body) // req.body
+    bookService.db_insertBook(book).then(() => {
+        new Result('成功添加电子书').success(res)
+    }).catch(err => {
+        next(boom.badImplementation(err))
+    })
+})
+
+router.post('/update', function (req, res, next) {
+    const decoded = decode(req)
+    if (decoded && decoded.username) {
+        req.body.username = decoded.username
+    }
+    const book = new Book(null, req.body) 
+    bookService.db_updateBook(book).then(() => {
+        new Result('成功更新电子书').success(res)
+    }).catch(err => {
+        next(boom.badImplementation(err))
+    })
+})
+
+/** 获取图书信息 */
+router.get('/get', function(req, res, next) {
+    const {fileName} = req.query
+    if (!fileName) {
+        next(boom.badRequest(new Error('参数不能为空')))
+    } else {
+        bookService.db_getBook(fileName).then(book => {
+            new Result(book, '成功获取图书信息').success(res)
+        }).catch(err => {
+            next(boom.badImplementation(err))
+        })
+    }
+})
 
 module.exports = router
