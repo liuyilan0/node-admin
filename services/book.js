@@ -1,6 +1,8 @@
 const { insert, queryOne, querySql, update } = require('../db')
+const db = require('../db')
 const _ = require('lodash')
 const Book = require('../models/book')
+const { debug } = require('../utils/constant')
 
 // 查看电子书(title、author、publisher都相同的情况)是否存在
 function db_exists(book) {
@@ -120,7 +122,7 @@ async function db_getBookCategory() {
     result.forEach(item => {
         categroyList.push({
             label: item.categoryText,
-            value: item.value,
+            value: item.category,
             num: item.num
         })
     });
@@ -128,14 +130,53 @@ async function db_getBookCategory() {
 }
 
 // 获取电子书列表数据
-function db_getBookList() {
+async function db_getBookList(query) {
+    const {
+        category,
+        author,
+        title,
+        sort,
+        page = 1,
+        pageSize = 20
+    } = query
+    
+    let sql = 'select * from book'
+    let where = 'where'
+    title && (where = db.sqlLike(where, 'title', title)) // 条件查询（like）
+    author && (where = db.sqlLike(where, 'author', author)) // 条件查询（like）
+    category && (where = db.sqlAnd(where, 'category', category)) // 条件查询
+    if (where !== 'where') { // 如果有条件查询，则将sql拼接起来
+        sql = `${sql} ${where}`
+    }
+    if (sort) { // 排序
+        const symbol = sort[0] // + 或 -
+        const column = sort.slice(1, sort.length) // 排序依据的字段
+        const order = symbol === '+' ? 'asc' : 'desc'
+        sql = `${sql} order by \`${column}\` ${order}`
+    }
+    const offset = (page - 1) * pageSize // 分页偏移量
+    sql = `${sql} limit ${pageSize} offset ${offset}`
+    const bookList = await querySql(sql)
+    return { bookList }
+}
+
+// 删除某电子书
+function db_deleteBook(book) {
     return new Promise(async (resolve, reject) => {
-        const sql = 'select * from book order by id asc'
-        const bookList = await querySql(sql)
-        if (bookList && bookList.length != 0) {
-            resolve(bookList)
-        } else {
-            reject(new Error('数据库暂无电子书'))
+        try {
+            if (book instanceof Book) {
+                const result = await db_exists(book)
+                if (result) {
+                    // 删除
+                    const sql = `delete from book where id='${book.id}'`
+                } else {
+                    reject(new Error('电子书不存在'))
+                }
+            } else {
+                reject(new Error('添加的图书模型不合法'))
+            }
+        } catch (error) {
+            reject(error)
         }
     })
 }

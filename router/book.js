@@ -37,8 +37,8 @@ router.post('/create', function (req, res, next) {
     if (decoded && decoded.username) {
         req.body.username = decoded.username
     }
-    console.log('添加图书接口参数:\n')
-    console.log(req.body)
+    // console.log('添加图书接口参数:\n')
+    // console.log(req.body)
     const book = new Book(null, req.body) // req.body
     bookService.db_insertBook(book).then(() => {
         new Result('成功添加电子书').success(res)
@@ -85,8 +85,17 @@ router.get('/getCategory', function(req, res, next) {
 
 /** 获取列表数据 */
 router.get('/getList', function(req, res, next) {
-    bookService.db_getBookList().then(bookList => {
+    bookService.db_getBookList(req.query).then(bookList => {
         new Result(bookList, '成功获取列表数据').success(res)
+    }).catch(err => {
+        next(boom.badImplementation(err))
+    })
+})
+
+/** 删除某电子书 */
+router.get('/delete', function(req, res, next) {
+    bookService.db_getBookList().then(bookList => {
+        new Result(bookList, '成功删除该电子书').success(res)
     }).catch(err => {
         next(boom.badImplementation(err))
     })

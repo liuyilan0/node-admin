@@ -22,7 +22,7 @@ function querySql(sql) {
       debug && console.log('\n执行语句： ' + sql + '\n')
       conn.query(sql, (err, results) => {
         if (err) {
-          debug && console.log('查询失败:', JSON.stringify(err))
+          // debug && console.log('查询失败:', JSON.stringify(err))
           reject(err)
         } else {
           // debug && console.log('查询结果:', JSON.stringify(results))
@@ -102,7 +102,6 @@ function update(model, tableName, where) {
     if (!isObject(model)) {
       reject(new Error('更新失败，数据类型不对'))
     } else {
-      console.log('----------------')
       const entry = []
       Object.keys(model).forEach(key => {
         if (model.hasOwnProperty(key)) {
@@ -128,16 +127,34 @@ function update(model, tableName, where) {
         } finally {
           conn.end()
         }
-      } else {
-
-      }
+      } 
     }
   })
+}
+
+// 拼接sql语句
+function sqlAnd(where, k, v) {
+  if (where === 'where') {
+    return `${where} \`${k}\`='${v}'`
+  } else {
+    return `${where} and \`${k}\`='${v}'`
+  }
+}
+
+// 拼接sql语句：like
+function sqlLike(where, k, v) {
+  if (where === 'where') {
+    return `${where} \`${k}\` like '%${v}%'`
+  } else {
+    return `${where} and \`${k}\` like '%${v}%'`
+  }
 }
 
 module.exports = {
   querySql,
   queryOne,
   insert,
-  update
+  update,
+  sqlAnd,
+  sqlLike
 }

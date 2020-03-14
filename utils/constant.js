@@ -11,7 +11,7 @@ module.exports = {
 
     PWD_SALT: 'vue-admin',  // 密码md5加密秘钥
     PRIVATE_KEY: 'vue-admin-node',  // JWT秘钥
-    JWT_EXPIRED: 60 * 60,  // token失效时间
+    JWT_EXPIRED: 60 * 60 * 60,  // token失效时间
 
     UPLOAD_PATH,
     MIME_TYPE_EPUB: 'application/epub+zip',
