@@ -112,8 +112,38 @@ function db_getBook(fileName) {
     })
 }
 
+// 获取分类数据
+async function db_getBookCategory() {
+    const sql = 'select * from category order by category asc'
+    const result = await querySql(sql)
+    const categroyList = []
+    result.forEach(item => {
+        categroyList.push({
+            label: item.categoryText,
+            value: item.value,
+            num: item.num
+        })
+    });
+    return categroyList
+}
+
+// 获取电子书列表数据
+function db_getBookList() {
+    return new Promise(async (resolve, reject) => {
+        const sql = 'select * from book order by id asc'
+        const bookList = await querySql(sql)
+        if (bookList && bookList.length != 0) {
+            resolve(bookList)
+        } else {
+            reject(new Error('数据库暂无电子书'))
+        }
+    })
+}
+
 module.exports = {
     db_insertBook, // 插入电子书
     db_getBook, // 查询电子书
-    db_updateBook // 更新电子书
+    db_updateBook, // 更新电子书
+    db_getBookCategory, // 获取分类数据
+    db_getBookList // 获取电子书列表
 }

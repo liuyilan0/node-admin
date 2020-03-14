@@ -74,4 +74,22 @@ router.get('/get', function(req, res, next) {
     }
 })
 
+/** 获取分类数据 */
+router.get('/getCategory', function(req, res, next) {
+    bookService.db_getBookCategory().then(category => {
+        new Result(category, '成功获取分类数据').success(res)
+    }).catch(err => {
+        next(boom.badImplementation(err))
+    })
+})
+
+/** 获取列表数据 */
+router.get('/getList', function(req, res, next) {
+    bookService.db_getBookList().then(bookList => {
+        new Result(bookList, '成功获取列表数据').success(res)
+    }).catch(err => {
+        next(boom.badImplementation(err))
+    })
+})
+
 module.exports = router
