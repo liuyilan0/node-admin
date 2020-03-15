@@ -9,7 +9,7 @@ function db_login({ username, password }) {
 function db_findUser(username) {
     const sql = `select * from admin_user where username='${username}'`
     return queryOne(sql)
-  }
+}
 
 module.exports = {
     db_login,

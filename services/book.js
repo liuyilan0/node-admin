@@ -144,7 +144,7 @@ async function db_getBookList(query) {
     let where = 'where'
     title && (where = db.sqlLike(where, 'title', title)) // 条件查询（like）
     author && (where = db.sqlLike(where, 'author', author)) // 条件查询（like）
-    category && (where = db.sqlAnd(where, 'category', category)) // 条件查询
+    category && (where = db.sqlAnd(where, 'categoryText', category)) // 条件查询
     if (where !== 'where') { // 如果有条件查询，则将sql拼接起来
         sql = `${sql} ${where}`
     }
@@ -154,29 +154,41 @@ async function db_getBookList(query) {
         const order = symbol === '+' ? 'asc' : 'desc'
         sql = `${sql} order by \`${column}\` ${order}`
     }
+    // 查询总条数
+    let countSql = `select count(*) as count from book`
+    if (where !== 'where') { // 如果有条件查询，则将sql拼接起来
+        countSql = `${countSql} ${where}`
+    }
+    const count = await querySql(countSql)
+
+    // 查询列表
     const offset = (page - 1) * pageSize // 分页偏移量
     sql = `${sql} limit ${pageSize} offset ${offset}`
     const bookList = await querySql(sql)
-    return { bookList }
+    bookList.forEach(book => {
+        book.cover = Book.genCoverUrl(book)
+    });
+
+    return { bookList, count: count[0].count, page, pageSize }
 }
 
 // 删除某电子书
-function db_deleteBook(book) {
+function db_deleteBook(fileName) {
     return new Promise(async (resolve, reject) => {
-        try {
-            if (book instanceof Book) {
-                const result = await db_exists(book)
-                if (result) {
-                    // 删除
-                    const sql = `delete from book where id='${book.id}'`
-                } else {
-                    reject(new Error('电子书不存在'))
-                }
+        const book = await db_getBook(fileName)
+        if (book) {
+            if (+book.updateType === 0) {
+                reject(new Error('内置电子书不能删除'))
             } else {
-                reject(new Error('添加的图书模型不合法'))
+                const bookObj = new Book(null, book)
+                const sql = `delete from book where fileName='${fileName}'`
+                querySql(sql).then(() => {
+                    bookObj.reset() // 删除磁盘所有相关内容
+                    resolve()
+                }) 
             }
-        } catch (error) {
-            reject(error)
+        } else {
+            reject(new Error('电子书不存在'))
         }
     })
 }
@@ -186,5 +198,6 @@ module.exports = {
     db_getBook, // 查询电子书
     db_updateBook, // 更新电子书
     db_getBookCategory, // 获取分类数据
-    db_getBookList // 获取电子书列表
+    db_getBookList, // 获取电子书列表
+    db_deleteBook // 删除电子书
 }

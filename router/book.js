@@ -85,20 +85,25 @@ router.get('/getCategory', function(req, res, next) {
 
 /** 获取列表数据 */
 router.get('/getList', function(req, res, next) {
-    bookService.db_getBookList(req.query).then(bookList => {
-        new Result(bookList, '成功获取列表数据').success(res)
+    bookService.db_getBookList(req.query).then(({ bookList, count, page, pageSize }) => {
+        new Result({ bookList, count, page: +page, pageSize: +pageSize }, '成功获取列表数据').success(res)
     }).catch(err => {
         next(boom.badImplementation(err))
     })
 })
 
 /** 删除某电子书 */
-router.get('/delete', function(req, res, next) {
-    bookService.db_getBookList().then(bookList => {
-        new Result(bookList, '成功删除该电子书').success(res)
-    }).catch(err => {
-        next(boom.badImplementation(err))
-    })
+router.get('/delete', function (req, res, next) {
+    const { fileName } = req.query
+    if (!fileName) {
+        next(boom.badRequest(new Error('参数不能为空')))
+    } else {
+        bookService.db_deleteBook(fileName).then(() => {
+            new Result('成功删除该电子书').success(res)
+        }).catch(err => {
+            next(boom.badImplementation(err))
+        })
+    }
 })
 
 module.exports = router
